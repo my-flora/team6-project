@@ -45,5 +45,5 @@ E002 空引用 · E004 引用未 APPROVED（幻觉传染）· E101 空人类输�
 
 - T2（张嘉辉）：黑板服务写入接口需集成 `assert_blackboard_writable`
 - T4（张嘉辉）：编排引擎复用 `GateService.validate_agent_message` 做发言门槛
-- T5~T9（范云娜 / 张昊博）：前端视图统一从 `frontend/src/api` 导入 apiClient
+- T5~T9（范云娜 / 张吴博）：前端视图统一从 `frontend/src/api` 导入 apiClient
 - T11（全员）：以 `backend/tests` 为异常分支联调基线
