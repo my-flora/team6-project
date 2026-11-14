@@ -47,7 +47,7 @@ class RoundStatus(str, Enum):
 
 
 class AgentRole(str, Enum):
-    """Agent 角色"""
+    """Agent 角色（HUMAN 为人类直接产出，见 ADR-004）"""
     PM = "PM"
     BA = "BA"            # 商业
     UX = "UX"            # 体验
@@ -55,6 +55,7 @@ class AgentRole(str, Enum):
     ARCH = "ARCH"        # 架构
     RED_TEAM = "RED_TEAM"      # 评价
     FORMATTER = "FORMATTER"    # 格式化
+    HUMAN = "HUMAN"            # 人类（阶段1输入、人类门禁产出等）
 
 
 class Stage(str, Enum):

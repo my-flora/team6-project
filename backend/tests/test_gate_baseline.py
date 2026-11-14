@@ -176,6 +176,52 @@ def test_change_request_updates_version():
     assert store.get_baseline(bl.id).version == "V1.1"
 
 
+# ---------- 补充：拍板 DECIDED ----------
+
+def test_gate_decision_decided_requires_reason():
+    """拍板 DECIDED：理由必填并记录"""
+    project = store.create_project("t-decided")
+    entry = _make_entry(project.id, EntryStatus.PENDING_REVIEW)
+    store.add_entry(entry)
+    g = store.add_gate(HumanGate(id="g2", project_id=project.id, stage=Stage.IDEA, entry_id=entry.id))
+    with pytest.raises(HTTPException) as exc:
+        gate.decide_gate(g, GateStatus.DECIDED, "")
+    assert exc.value.detail["code"] == "E204"
+
+    decided = gate.decide_gate(g, GateStatus.DECIDED, "基于预算现状拍板：通过")
+    assert decided.gate_status == GateStatus.DECIDED
+    assert decided.reason == "基于预算现状拍板：通过"
+
+
+# ---------- 补充：会签签署 ----------
+
+def test_signoff_init_and_sign():
+    project = store.create_project("t-sign")
+    created = bs.init_signoffs(project.id)
+    assert sorted(created) == ["business", "development", "testing"]
+    so = bs.sign_signoff(project.id, "business", "李业务")
+    assert so.status == EntryStatus.APPROVED and so.signed_by == "李业务"
+
+
+def test_signoff_no_proxy_signing():
+    """不可一人代签：同一签署人只能签一个方位"""
+    project = store.create_project("t-proxy")
+    bs.init_signoffs(project.id)
+    bs.sign_signoff(project.id, "business", "王经理")
+    with pytest.raises(HTTPException) as exc:
+        bs.sign_signoff(project.id, "development", "王经理")
+    assert exc.value.detail["code"] == "B405"
+
+
+def test_signoff_rejects_duplicate_sign():
+    project = store.create_project("t-dup")
+    bs.init_signoffs(project.id)
+    bs.sign_signoff(project.id, "testing", "赵测试")
+    with pytest.raises(HTTPException) as exc:
+        bs.sign_signoff(project.id, "testing", "赵测试")
+    assert exc.value.detail["code"] == "B404A"
+
+
 # ---------- HTTP 层冒烟 ----------
 
 def test_http_gate_advance_validate_returns_400_on_empty_input():

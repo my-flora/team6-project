@@ -109,22 +109,34 @@ class GateService:
     # ---------- HumanGateDecision 门禁裁决 ----------
 
     def decide_gate(self, gate: HumanGate, decision: GateStatus, reason: str) -> HumanGate:
-        """人类门禁通过/驳回（规格书 4.2）：驳回必须填 reason。"""
+        """人类门禁裁决（规格书 4.2）：
+        - APPROVED / REJECTED：常规门禁通过或驳回，驳回必须填 reason；
+        - DECIDED：人类拍板（仅系统判定「争议死锁」时激活），必须记录裁决理由。
+        """
         if gate.gate_status != GateStatus.PENDING:
             raise HTTPException(
                 status_code=400,
                 detail={"code": "E201", "message": f"门禁已处理（{gate.gate_status.value}），不可重复裁决"},
             )
-        if decision == GateStatus.REJECTED and (not reason or not reason.strip()):
-            raise HTTPException(
-                status_code=400,
-                detail={"code": "E202", "message": "驳回必须填写 reason"},
-            )
-        if decision not in (GateStatus.APPROVED, GateStatus.REJECTED):
-            raise HTTPException(
-                status_code=400,
-                detail={"code": "E203", "message": "裁决只能是 APPROVED 或 REJECTED"},
-            )
-        gate.gate_status = decision
-        gate.reason = reason or None
-        return gate
+        if decision == GateStatus.APPROVED:
+            gate.gate_status = decision
+            gate.reason = reason or None
+            return gate
+        if decision in (GateStatus.REJECTED, GateStatus.DECIDED):
+            if not reason or not reason.strip():
+                if decision == GateStatus.REJECTED:
+                    raise HTTPException(
+                        status_code=400,
+                        detail={"code": "E202", "message": "驳回必须填写 reason"},
+                    )
+                raise HTTPException(
+                    status_code=400,
+                    detail={"code": "E204", "message": "人类拍板必须记录裁决理由"},
+                )
+            gate.gate_status = decision
+            gate.reason = reason
+            return gate
+        raise HTTPException(
+            status_code=400,
+            detail={"code": "E203", "message": "裁决只能是 APPROVED、REJECTED 或 DECIDED"},
+        )

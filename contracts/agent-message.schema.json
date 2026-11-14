@@ -15,7 +15,7 @@
     },
     "agent_role": {
       "type": "string",
-      "enum": ["PM", "BA", "UX", "TECH", "ARCH", "RED_TEAM", "FORMATTER"],
+      "enum": ["PM", "BA", "UX", "TECH", "ARCH", "RED_TEAM", "FORMATTER", "HUMAN"],
       "description": "Agent 角色（AgentRole 枚举）"
     },
     "topic_id": { "type": "string", "description": "议题 ID（讨论阶段必填）" },

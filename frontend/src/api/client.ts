@@ -17,6 +17,7 @@ import type {
   FreezeBaselineRequest,
   FreezeBaselineResponse,
   GateDecisionRequest,
+  SignoffSignRequest,
   StageAdvanceRequest,
 } from "./types";
 
@@ -67,12 +68,25 @@ export class ApiClient {
     return this.request("/gate/advance/validate", req);
   }
 
-  /** 门禁通过/驳回；REJECTED 必须传 reason */
+  /** 门禁裁决：APPROVED / REJECTED（必填 reason）/ DECIDED（拍板，必填 reason） */
   decideGate(req: GateDecisionRequest): Promise<{ gate_id: string; gate_status: string; entry_status: string | null }> {
-    if (req.decision === "REJECTED" && !(req.reason ?? "").trim()) {
-      return Promise.reject(new ApiRequestError({ code: "E202", message: "驳回必须填写 reason" }, 400));
+    if ((req.decision === "REJECTED" || req.decision === "DECIDED") && !(req.reason ?? "").trim()) {
+      return Promise.reject(new ApiRequestError(
+        { code: req.decision === "REJECTED" ? "E202" : "E204", message: req.decision === "REJECTED" ? "驳回必须填写 reason" : "人类拍板必须记录裁决理由" },
+        400,
+      ));
     }
     return this.request("/gate/decision", req);
+  }
+
+  /** 初始化三方会签单 */
+  initSignoffs(project_id: string): Promise<{ created: string[]; parties: string[] }> {
+    return this.request("/baseline/signoffs/init", { project_id, scope: "", source_entry_ids: [] });
+  }
+
+  /** 签署会签单；一人已签另一方将返回 B405（不可一人代签） */
+  signSignoff(req: SignoffSignRequest): Promise<{ party: string; status: string; signed_by: string }> {
+    return this.request("/baseline/signoffs", req);
   }
 
   // ---------- T10 基线冻结与变更 ----------

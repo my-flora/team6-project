@@ -12,13 +12,68 @@ from datetime import datetime
 from fastapi import HTTPException
 
 from backend.core.enums import EntryStatus, ProjectStatus
-from backend.core.models import Baseline, ChangeRequest
+from backend.core.models import Baseline, ChangeRequest, Signoff
 from backend.store import Store
 
 
 class BaselineService:
     def __init__(self, store: Store) -> None:
         self.store = store
+
+    # ---------- 三方会签 ----------
+
+    SIGNOFF_PARTIES = ("business", "development", "testing")
+
+    def init_signoffs(self, project_id: str) -> list[str]:
+        """初始化三方会签单（业务/开发/测试），已存在的不重复创建。"""
+        existing = {s.party for s in self.store.get_signoffs(project_id)}
+        if self.store.get_project(project_id) is None:
+            raise HTTPException(status_code=404, detail={"code": "B404", "message": "项目不存在"})
+        created = []
+        for party in self.SIGNOFF_PARTIES:
+            if party not in existing:
+                self.store.add_signoff(Signoff(
+                    id=f"so-{party}-{uuid.uuid4().hex[:6]}",
+                    project_id=project_id,
+                    party=party,
+                ))
+                created.append(party)
+        return created
+
+    def sign_signoff(self, project_id: str, party: str, signed_by: str) -> Signoff:
+        """签署会签单。
+
+        规格书 4.2 约束：
+        - 业务、开发、测试三项并行，不可一人代签（同一签署人只能签一个方位）；
+        - 已通过的会签不可重复签署。
+        """
+        if not signed_by or not signed_by.strip():
+            raise HTTPException(status_code=400, detail={"code": "B401", "message": "签署人不能为空"})
+        if party not in self.SIGNOFF_PARTIES:
+            raise HTTPException(
+                status_code=400,
+                detail={"code": "B402", "message": f"会签方只能是 {list(self.SIGNOFF_PARTIES)}"},
+            )
+        signoffs = {s.party: s for s in self.store.get_signoffs(project_id)}
+        if party not in signoffs:
+            raise HTTPException(status_code=400, detail={"code": "B403", "message": "会签单未初始化，请先调用 /baseline/signoffs/init"})
+
+        target = signoffs[party]
+        if target.status == EntryStatus.APPROVED:
+            raise HTTPException(status_code=400, detail={"code": "B404A", "message": "该会签方已通过，不可重复签署"})
+
+        # 不可一人代签：同一签署人不得出现在两个方位
+        for other_party, other in signoffs.items():
+            if other_party != party and other.signed_by and other.signed_by == signed_by:
+                raise HTTPException(
+                    status_code=400,
+                    detail={"code": "B405", "message": f"不可一人代签：{signed_by} 已签署 {other_party}"},
+                )
+
+        target.status = EntryStatus.APPROVED
+        target.signed_by = signed_by
+        target.signed_at = datetime.now()
+        return target
 
     # ---------- 冻结基线 ----------
 

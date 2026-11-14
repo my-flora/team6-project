@@ -11,6 +11,12 @@ router = APIRouter(prefix="/baseline", tags=["baseline"])
 service = BaselineService(store)
 
 
+class SignoffBody(BaseModel):
+    project_id: str
+    party: str          # "business" | "development" | "testing"
+    signed_by: str
+
+
 class FreezeBody(BaseModel):
     project_id: str
     scope: str
@@ -29,6 +35,18 @@ class ChangeDecisionBody(BaseModel):
     cr_id: str
     approved: bool
     decided_by: str
+
+
+@router.post("/signoffs/init", summary="初始化三方会签单（业务/开发/测试）")
+def init_signoffs(body: FreezeBody):
+    created = service.init_signoffs(body.project_id)
+    return {"created": created, "parties": service.SIGNOFF_PARTIES}
+
+
+@router.post("/signoffs", summary="签署会签单（不可一人代签；已通过不可重复签）")
+def sign_signoff(body: SignoffBody):
+    signoff = service.sign_signoff(body.project_id, body.party, body.signed_by)
+    return {"party": signoff.party, "status": signoff.status.value, "signed_by": signoff.signed_by}
 
 
 @router.post("/freeze", summary="冻结基线（校验三方会签全绿；冻结后黑板只读）")

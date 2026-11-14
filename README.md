@@ -39,7 +39,14 @@ uvicorn backend.app:app --reload --port 8000
 
 ## 错误码（契约的一部分，见 ADR-002）
 
-E002 空引用 · E004 引用未 APPROVED（幻觉传染）· E101 空人类输入（袖手旁观）· E202 驳回未填理由 · B301 黑板只读
+E002 空引用 · E004 引用未 APPROVED（幻觉传染）· E101 空人类输入（袖手旁观）· E202 驳回未填理由 · E204 拍板未填理由 · B301 黑板只读 · B405 不可一人代签
+
+## 会签与拍板接口（ADR-004 增补）
+
+- `POST /baseline/signoffs/init` 初始化三方会签单（business/development/testing）
+- `POST /baseline/signoffs` 签署（同一签署人只能签一个方位，B405 拦截代签）
+- `POST /gate/decision` 支持 `decision: "DECIDED"`（人类拍板，reason 必填）
+- `AgentRole` 新增 `HUMAN`（人类直接产出条目的 source_agent，见 ADR-004）
 
 ## 与其他角色的依赖（六人分工）
 

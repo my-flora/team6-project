@@ -20,7 +20,7 @@ export type GateStatus = "PENDING" | "APPROVED" | "REJECTED" | "DECIDED";
 
 export type RoundStatus = "ONGOING" | "CONVERGED" | "TERMINATED";
 
-export type AgentRole = "PM" | "BA" | "UX" | "TECH" | "ARCH" | "RED_TEAM" | "FORMATTER";
+export type AgentRole = "PM" | "BA" | "UX" | "TECH" | "ARCH" | "RED_TEAM" | "FORMATTER" | "HUMAN";
 
 export type Stage =
   | "IDEA"
@@ -60,8 +60,14 @@ export interface StageAdvanceRequest {
 
 export interface GateDecisionRequest {
   gate_id: string;
-  decision: Exclude<GateStatus, "PENDING" | "DECIDED">;
-  reason?: string; // REJECTED 时必填
+  decision: Exclude<GateStatus, "PENDING">;
+  reason?: string; // REJECTED（驳回）与 DECIDED（拍板）时必填
+}
+
+export interface SignoffSignRequest {
+  project_id: string;
+  party: "business" | "development" | "testing";
+  signed_by: string;
 }
 
 export interface FreezeBaselineRequest {

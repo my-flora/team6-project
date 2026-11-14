@@ -18,6 +18,7 @@ export type {
   GateStatus,
   ProjectStatus,
   RoundStatus,
+  SignoffSignRequest,
   Stage,
   StageAdvanceRequest,
   StageStatus,
