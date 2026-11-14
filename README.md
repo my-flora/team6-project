@@ -41,9 +41,14 @@ uvicorn backend.app:app --reload --port 8000
 
 E002 空引用 · E004 引用未 APPROVED（幻觉传染）· E101 空人类输入（袖手旁观）· E202 驳回未填理由 · B301 黑板只读
 
-## 与其他角色的依赖
+## 与其他角色的依赖（六人分工）
 
-- T2（张嘉辉）：黑板服务写入接口需集成 `assert_blackboard_writable`
-- T4（张嘉辉）：编排引擎复用 `GateService.validate_agent_message` 做发言门槛
-- T5~T9（范云娜 / 张吴博）：前端视图统一从 `frontend/src/api` 导入 apiClient
-- T11（全员）：以 `backend/tests` 为异常分支联调基线
+- ① 陈欣然（契约与门禁 · 组长）：已交付本目录全部内容（T1 / T3 / T10 / 冻结 api client / 脚手架）
+- ② 张嘉辉（编排与调度）：T4 轮次控制、时间盒、强制收敛、拉回清零；T2 黑板服务与状态强约束 → `/backend/orchestrator`、`/backend/blackboard`、`/backend/log`、`/agents/roles/pm`。注意：黑板写入需集成 `assert_blackboard_writable`；编排引擎复用 `GateService.validate_agent_message` 做发言门槛
+- ③ 范云娜（发散域 · 阶段1-3）：T5 结构化输入、T6 多体讨论与去重、T7 方案生成与裁剪 → `/backend/stages/{1-input,2-discussion,3-proposal}`、`/agents/roles/{business,ux,tech-critic,architect}`
+- ④ 张吴博（博弈域 · 阶段4-6）：T7.5 红蓝对抗评分、T8 PRD 生成、T9 会签与冻结联动 → `/backend/stages/{4-review,5-prd,6-signoff}`、`/agents/roles/{red-team,formatter}`
+- ⑤ 徐欣雨（前端 · 展示侧）：阶段进度条、黑板四色状态、轮次提示、Agent 状态灯、时间盒倒计时、PRD 阅读页 → `/frontend/src/views/{dashboard,blackboard,s2-discussion,s3-proposal,s5-prd}`、`/components/display`
+- ⑥ 江艳菲（前端 · 交互侧）：门禁面板（红点/驳回弹窗）、阶段1输入表单、评审页、会签页、变更申请页及全部人类介入控件 → `/frontend/src/views/{gate,s1-input,s4-review,s6-signoff}`、`/components/human-actions`
+
+前端两位（徐欣雨 / 江艳菲）统一从 `frontend/src/api` 导入 apiClient，不得自行 fetch；错误码含义见 `docs/adr/ADR-002`。
+T11 联调由陈欣然主持，全员参加，以 `backend/tests` 为异常分支基线。
