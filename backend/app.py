@@ -5,7 +5,9 @@
 from fastapi import FastAPI
 
 from backend.baseline.router import router as baseline_router
+from backend.blackboard.router import router as blackboard_router
 from backend.gate.router import router as gate_router
+from backend.orchestrator.router import router as orchestrator_router
 
 app = FastAPI(
     title="Virtual Project Room - Contracts & Gate API",
@@ -15,6 +17,8 @@ app = FastAPI(
 
 app.include_router(gate_router)
 app.include_router(baseline_router)
+app.include_router(blackboard_router)
+app.include_router(orchestrator_router)
 
 
 @app.get("/health", tags=["meta"])
