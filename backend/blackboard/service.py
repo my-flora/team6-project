@@ -256,8 +256,9 @@ class BlackboardService:
         before = entry.status if entry is not None else None
         gate = self.gate.decide_gate(gate, decision, reason or "")
         if entry is not None:
+            # APPROVED/DECIDED（拍板强制流转）→ APPROVED；REJECTED → REJECTED
             entry.status = (
-                EntryStatus.APPROVED if decision == GateStatus.APPROVED else EntryStatus.REJECTED
+                EntryStatus.REJECTED if decision == GateStatus.REJECTED else EntryStatus.APPROVED
             )
             self._audit(entry, actor, before, entry.status, reason=reason, gate_id=gate.id)
         return gate, entry

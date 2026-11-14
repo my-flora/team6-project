@@ -54,8 +54,9 @@ def gate_decision(body: GateDecisionBody):
     gate = gate_service.decide_gate(gate, body.decision, body.reason or "")
     entry = store.get_entry(gate.entry_id)
     if entry is not None:
-        entry.status = (
-            EntryStatus.APPROVED if body.decision == GateStatus.APPROVED
-            else EntryStatus.REJECTED
-        )
+        # APPROVED：通过；DECIDED（拍板）：强制流转，视为通过并保留裁决理由；REJECTED：驳回
+        if body.decision == GateStatus.REJECTED:
+            entry.status = EntryStatus.REJECTED
+        else:
+            entry.status = EntryStatus.APPROVED
     return {"gate_id": gate.id, "gate_status": gate.gate_status.value, "entry_status": entry.status.value if entry else None}
