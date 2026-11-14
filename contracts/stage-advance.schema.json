@@ -1,0 +1,26 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "contracts/stage-advance.schema.json",
+  "title": "StageAdvanceRequest",
+  "description": "阶段推进契约（V1.0 冻结）。防『人类袖手旁观』护栏：human_prompt_input 为空时后端拒绝推进，返回 400。下游阶段只能读取上游 EntryStatus=APPROVED 的黑板条目。",
+  "type": "object",
+  "required": ["project_id", "current_stage", "target_stage", "human_prompt_input"],
+  "additionalProperties": false,
+  "properties": {
+    "project_id": { "type": "string", "minLength": 1 },
+    "current_stage": {
+      "type": "string",
+      "enum": ["IDEA", "DISCUSSION", "PROPOSAL", "EVALUATION", "REQUIREMENT", "CONFIRMATION"]
+    },
+    "target_stage": {
+      "type": "string",
+      "enum": ["DISCUSSION", "PROPOSAL", "EVALUATION", "REQUIREMENT", "CONFIRMATION", "FROZEN"]
+    },
+    "human_prompt_input": {
+      "type": "string",
+      "minLength": 1,
+      "description": "人类确认的 Prompt 输入，为空则拒绝推进（返回 400）"
+    },
+    "pull_back_reason": { "type": "string", "description": "拉回主轴理由（可选，拉回操作必填）" }
+  }
+}

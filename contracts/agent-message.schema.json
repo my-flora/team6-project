@@ -1,0 +1,31 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "contracts/agent-message.schema.json",
+  "title": "AgentMessageRequest",
+  "description": "Agent 消息输入契约（V1.0 冻结）。Agent 每次发言必须携带以下字段，否则编排引擎拒收。发言门槛：references 为空的消息直接丢弃并警告。",
+  "type": "object",
+  "required": ["project_id", "stage", "agent_role", "content", "references"],
+  "additionalProperties": false,
+  "properties": {
+    "project_id": { "type": "string", "minLength": 1, "description": "项目 ID" },
+    "stage": {
+      "type": "string",
+      "enum": ["IDEA", "DISCUSSION", "PROPOSAL", "EVALUATION", "REQUIREMENT", "CONFIRMATION"],
+      "description": "所属阶段"
+    },
+    "agent_role": {
+      "type": "string",
+      "enum": ["PM", "BA", "UX", "TECH", "ARCH", "RED_TEAM", "FORMATTER"],
+      "description": "Agent 角色（AgentRole 枚举）"
+    },
+    "topic_id": { "type": "string", "description": "议题 ID（讨论阶段必填）" },
+    "round_no": { "type": "integer", "minimum": 1, "maximum": 5, "description": "议题轮次，1-5" },
+    "content": { "type": "string", "minLength": 1, "description": "发言内容，不得为空" },
+    "references": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "type": "string" },
+      "description": "引用的黑板条目 ID 列表；为空视为空引用，编排引擎直接拒收并警告"
+    }
+  }
+}
