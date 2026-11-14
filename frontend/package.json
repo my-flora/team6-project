@@ -1,0 +1,16 @@
+{
+  "name": "vpr-frontend",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "description": "第6组虚拟项目室前端脚手架（Vite + TypeScript）",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc && vite build",
+    "preview": "vite preview"
+  },
+  "devDependencies": {
+    "typescript": "^5.6.3",
+    "vite": "^6.0.3"
+  }
+}
