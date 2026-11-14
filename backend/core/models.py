@@ -3,7 +3,7 @@
 来源：《第6组-虚拟项目室设计规格书》1.2 数据模型 + 4.1 信号-字段映射。
 实体只定义结构与状态，不含业务规则；业务规则在 gate / orchestrator / baseline 等服务中实现。
 """
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Optional
 
 from pydantic import BaseModel, Field
@@ -27,7 +27,7 @@ class Project(BaseModel):
     status: ProjectStatus = ProjectStatus.RUNNING
     current_stage: Stage = Stage.IDEA
     stage_status: StageStatus = StageStatus.NOT_STARTED
-    created_at: datetime = Field(default_factory=datetime.utcnow)
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
 
 class BlackboardEntry(BaseModel):
@@ -52,7 +52,7 @@ class AgentMessage(BaseModel):
     round_no: int = Field(default=1, ge=1, le=MAX_ROUNDS)
     content: str
     references: list[str]
-    created_at: datetime = Field(default_factory=datetime.utcnow)
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
 
 class DiscussionRound(BaseModel):
@@ -74,7 +74,7 @@ class HumanGate(BaseModel):
     entry_id: str                       # 待审黑板条目
     gate_status: GateStatus = GateStatus.PENDING
     reason: Optional[str] = None        # 驳回必须填 reason
-    created_at: datetime = Field(default_factory=datetime.utcnow)
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
 
 class Signoff(BaseModel):
@@ -92,7 +92,7 @@ class Baseline(BaseModel):
     id: str
     project_id: str
     version: str                        # 如 "V1.0"
-    frozen_at: datetime = Field(default_factory=datetime.utcnow)
+    frozen_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
     scope: str                          # 冻结范围说明
     source_entry_ids: list[str] = Field(default_factory=list)
 
@@ -108,4 +108,4 @@ class ChangeRequest(BaseModel):
     impact_schedule: str = ""
     status: EntryStatus = EntryStatus.DRAFT   # DRAFT(待提交) / PENDING_REVIEW(待审批) / APPROVED / REJECTED
     decided_by: Optional[str] = None
-    created_at: datetime = Field(default_factory=datetime.utcnow)
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
